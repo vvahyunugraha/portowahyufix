@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelas Digital — Masuk</title>
+    <link rel="icon" type="image/svg+xml" href="../assets/images/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        ::selection { background: #1e40af; color: white; }
+        input:focus { outline: none; }
+        .role-active { background: white; color: #0f172a; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+        .role-inactive { color: #64748b; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+    <div class="min-h-screen flex flex-col lg:flex-row">
+
+        <!-- Left Panel -->
+        <div class="hidden lg:flex lg:w-1/2 bg-[#0f2744] flex-col justify-between p-16 relative overflow-hidden">
+            <div class="absolute inset-0 opacity-5">
+                <div class="absolute top-20 left-20 w-96 h-96 rounded-full border border-white"></div>
+                <div class="absolute top-40 left-40 w-64 h-64 rounded-full border border-white"></div>
+                <div class="absolute bottom-20 right-20 w-80 h-80 rounded-full border border-white"></div>
+            </div>
+            <div class="relative z-10">
+                <div class="flex items-center gap-3 mb-12">
+                    <span class="text-[10px] font-semibold tracking-[0.3em] uppercase text-blue-400">LINPRO · Tekbar</span>
+                </div>
+                <h1 class="text-5xl font-bold text-white leading-[1.1] mb-6">
+                    Mendesain<br>Kelas Digital<br><span class="text-blue-300">Berbasis LMS</span>
+                </h1>
+                <p class="text-blue-200 text-lg leading-relaxed max-w-sm">
+                    Platform pembelajaran interaktif untuk memahami konsep dan implementasi Learning Management System dalam pendidikan modern.
+                </p>
+
+                <div class="mt-16 grid grid-cols-2 gap-6">
+                    <div class="border border-blue-800 p-4">
+                        <div class="text-2xl font-bold text-white mb-1">5</div>
+                        <div class="text-xs text-blue-400 uppercase tracking-wide">Modul Pembelajaran</div>
+                    </div>
+                    <div class="border border-blue-800 p-4">
+                        <div class="text-2xl font-bold text-white mb-1">1</div>
+                        <div class="text-xs text-blue-400 uppercase tracking-wide">Evaluasi Akhir</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="relative z-10 border-t border-blue-800 pt-8">
+                <p class="text-blue-300 text-sm italic leading-relaxed">
+                    "LMS menyediakan ruang; desain pembelajaran menentukan kualitas pengalaman belajar."
+                </p>
+            </div>
+        </div>
+
+        <!-- Right Panel: Login Form -->
+        <div class="w-full lg:w-1/2 flex items-center justify-center p-8 py-16">
+            <div class="w-full max-w-sm">
+
+                <!-- Mobile header -->
+                <div class="lg:hidden mb-10 text-center">
+                    <span class="text-[10px] font-semibold tracking-[0.3em] uppercase text-slate-400">LINPRO · Tekbar</span>
+                    <h2 class="text-2xl font-bold text-slate-900 mt-2 leading-tight">Mendesain Kelas<br>Digital Berbasis LMS</h2>
+                </div>
+
+                <h2 class="text-2xl font-bold text-slate-900 mb-1">Masuk ke Kelas</h2>
+                <p class="text-slate-500 text-sm mb-8">Pilih peran dan masukkan kredensial Anda.</p>
+
+                <!-- Role Toggle -->
+                <div class="flex bg-slate-100 rounded-lg p-1 mb-7 gap-1">
+                    <button id="btn-siswa" onclick="setRole('siswa')"
+                        class="role-active flex-1 py-2.5 text-sm font-medium rounded-md transition-all duration-200">
+                        Siswa
+                    </button>
+                    <button id="btn-guru" onclick="setRole('guru')"
+                        class="role-inactive flex-1 py-2.5 text-sm font-medium rounded-md transition-all duration-200">
+                        Guru
+                    </button>
+                </div>
+
+                <!-- Form -->
+                <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Username</label>
+                        <input type="text" id="username" required placeholder="Masukkan username"
+                            class="w-full px-4 py-3 border border-slate-200 bg-white rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+                        <input type="password" id="password" required placeholder="••••••••"
+                            class="w-full px-4 py-3 border border-slate-200 bg-white rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                    </div>
+                    <div id="login-error" class="hidden text-sm text-red-600 bg-red-50 px-4 py-3 rounded-lg border border-red-100"></div>
+                    <button type="submit"
+                        class="w-full bg-[#1e3a8a] hover:bg-[#1e40af] text-white py-3 rounded-lg font-semibold text-sm transition-colors duration-200 mt-2">
+                        Masuk
+                    </button>
+                </form>
+
+                <!-- Demo credentials -->
+                <div class="mt-8 p-4 bg-white border border-slate-200 rounded-lg">
+                    <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-3">Akun Demo</p>
+                    <div class="space-y-2.5">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-500">Siswa</span>
+                            <span class="font-mono bg-slate-50 px-2 py-1 text-slate-700 border border-slate-100 rounded">siswa / belajar123</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-500">Guru</span>
+                            <span class="font-mono bg-slate-50 px-2 py-1 text-slate-700 border border-slate-100 rounded">guru / mengajar123</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 text-center">
+                    <a href="../index.html" class="text-xs text-slate-400 hover:text-slate-600 transition-colors">
+                        Kembali ke Beranda Portfolio
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentRole = 'siswa';
+
+        const CREDENTIALS = {
+            siswa: { username: 'siswa', password: 'belajar123', name: 'Peserta Didik', role: 'siswa' },
+            guru:  { username: 'guru',  password: 'mengajar123', name: 'Wahyu Nugraha', role: 'guru' }
+        };
+
+        function setRole(role) {
+            currentRole = role;
+            const btnS = document.getElementById('btn-siswa');
+            const btnG = document.getElementById('btn-guru');
+            if (role === 'siswa') {
+                btnS.className = 'role-active flex-1 py-2.5 text-sm font-medium rounded-md transition-all duration-200';
+                btnG.className = 'role-inactive flex-1 py-2.5 text-sm font-medium rounded-md transition-all duration-200';
+            } else {
+                btnG.className = 'role-active flex-1 py-2.5 text-sm font-medium rounded-md transition-all duration-200';
+                btnS.className = 'role-inactive flex-1 py-2.5 text-sm font-medium rounded-md transition-all duration-200';
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorEl  = document.getElementById('login-error');
+            const cred     = CREDENTIALS[currentRole];
+
+            if (username === cred.username && password === cred.password) {
+                sessionStorage.setItem('kd_user', JSON.stringify(cred));
+                errorEl.classList.add('hidden');
+                window.location.href = './lms.html';
+            } else {
+                errorEl.textContent = 'Username atau password tidak sesuai. Periksa kembali dan coba lagi.';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        // If already logged in, redirect
+        if (sessionStorage.getItem('kd_user')) {
+            window.location.href = './lms.html';
+        }
+    </script>
+</body>
+</html>

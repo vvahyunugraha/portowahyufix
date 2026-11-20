@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelas Digital — LMS</title>
+    <link rel="icon" type="image/svg+xml" href="../assets/images/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+        ::selection { background: #1e40af; color: white; }
+
+        /* Layout */
+        body { background: #f1f5f9; min-height: 100vh; }
+        #sidebar { width: 260px; min-height: 100vh; }
+        #main-content { margin-left: 260px; }
+        @media (max-width: 1023px) {
+            #sidebar { position: fixed; left: 0; top: 0; height: 100%; transform: translateX(-100%); z-index: 50; transition: transform 0.3s ease; }
+            #sidebar.open { transform: translateX(0); }
+            #main-content { margin-left: 0; }
+        }
+
+        /* Nav items */
+        .nav-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border-radius: 8px; font-size: 13.5px; font-weight: 500; color: #93c5fd; transition: all 0.2s; text-align: left; cursor: pointer; border: none; background: transparent; }
+        .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .nav-item.active { background: rgba(255,255,255,0.12); color: white; }
+        .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.5; flex-shrink: 0; }
+        .nav-item.active .nav-dot { opacity: 1; }
+
+        /* Cards */
+        .card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04); }
+        .card-sm { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+
+        /* Concept cards (from slides) */
+        .concept-card { background: white; border-radius: 10px; padding: 20px 20px 20px 16px; border-left: 4px solid; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+
+        /* Callout (Inti Pembelajaran) */
+        .callout { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 18px; display: flex; align-items: flex-start; gap: 12px; }
+        .callout-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #1e40af; white-space: nowrap; padding-top: 1px; }
+        .callout-text { font-size: 13.5px; color: #1e293b; font-weight: 600; line-height: 1.5; }
+
+        /* Module status badges */
+        .badge-done { background: #dcfce7; color: #15803d; font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 999px; }
+        .badge-open { background: #eff6ff; color: #1d4ed8; font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 999px; }
+
+        /* Quiz */
+        .quiz-option { display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.15s; margin-bottom: 8px; font-size: 14px; color: #334155; }
+        .quiz-option:hover { border-color: #93c5fd; background: #eff6ff; }
+        .quiz-option.selected { border-color: #1e40af; background: #eff6ff; color: #1e3a8a; }
+        .quiz-option.correct { border-color: #16a34a; background: #dcfce7; color: #15803d; }
+        .quiz-option.wrong { border-color: #dc2626; background: #fef2f2; color: #b91c1c; }
+        .quiz-option input { margin-top: 1px; accent-color: #1e40af; }
+
+        /* Form inputs */
+        .form-input { width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 13.5px; color: #0f172a; outline: none; transition: border 0.15s; background: white; }
+        .form-input:focus { border-color: #3b82f6; }
+        textarea.form-input { resize: vertical; min-height: 90px; }
+        .form-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+
+        /* Horton cards */
+        .horton-num { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: white; margin: 0 auto 12px; }
+
+        /* Progress bar */
+        #progress-fill { transition: width 0.4s ease; }
+
+        /* Mobile overlay */
+        #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
+        #sidebar-overlay.show { display: block; }
+
+        /* Panel hidden */
+        .panel { display: none; }
+        .panel.active { display: block; }
+
+        /* Hover on module card */
+        .module-card { cursor: pointer; transition: all 0.2s; }
+        .module-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+        /* Step list */
+        .step-item { display: flex; gap: 14px; margin-bottom: 20px; }
+        .step-num { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: #1e40af; color: white; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+        .step-text { font-size: 15px; color: #334155; line-height: 1.6; }
+        .step-bold { font-weight: 700; color: #0f172a; }
+
+        /* Toast */
+        #toast { position: fixed; bottom: 24px; right: 24px; background: #0f172a; color: white; padding: 14px 20px; border-radius: 10px; font-size: 13.5px; font-weight: 500; z-index: 100; opacity: 0; transform: translateY(10px); transition: all 0.3s; pointer-events: none; }
+        #toast.show { opacity: 1; transform: translateY(0); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar Overlay (mobile) -->
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- Sidebar -->
+<aside id="sidebar" class="fixed top-0 left-0 h-full bg-[#0f2744] flex flex-col">
+
+    <!-- Course Info -->
+    <div class="p-5 border-b border-blue-900/60">
+        <span class="text-[10px] font-semibold tracking-[0.2em] uppercase text-blue-400">LINPRO · Tekbar</span>
+        <h2 class="text-sm font-semibold text-white mt-1 leading-snug">Mendesain Kelas Digital<br>Berbasis LMS</h2>
+    </div>
+
+    <!-- User -->
+    <div class="px-5 py-4 border-b border-blue-900/60">
+        <div class="flex items-center gap-3">
+            <div id="user-avatar" class="w-9 h-9 bg-blue-700 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">S</div>
+            <div>
+                <div id="user-name" class="text-sm font-semibold text-white">Siswa</div>
+                <div id="user-role" class="text-xs text-blue-400">Peserta Didik</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 py-4 px-3 overflow-y-auto space-y-1">
+        <button class="nav-item active" onclick="showPanel('beranda')" data-panel="beranda">
+            <span class="nav-dot"></span> Beranda
+        </button>
+
+        <div class="pt-3 pb-1 px-3">
+            <span class="text-[10px] font-bold tracking-widest uppercase text-blue-600">Modul</span>
+        </div>
+
+        <button class="nav-item" onclick="showPanel('pendahuluan')" data-panel="pendahuluan">
+            <span class="nav-dot"></span> 01 &nbsp;Pendahuluan
+        </button>
+        <button class="nav-item" onclick="showPanel('materi')" data-panel="materi">
+            <span class="nav-dot"></span> 02 &nbsp;Materi
+        </button>
+        <button class="nav-item" onclick="showPanel('aktivitas')" data-panel="aktivitas">
+            <span class="nav-dot"></span> 03 &nbsp;Aktivitas
+        </button>
+        <button class="nav-item" onclick="showPanel('project')" data-panel="project">
+            <span class="nav-dot"></span> 04 &nbsp;Project
+        </button>
+        <button class="nav-item" onclick="showPanel('evaluasi')" data-panel="evaluasi">
+            <span class="nav-dot"></span> 05 &nbsp;Evaluasi
+        </button>
+    </nav>
+
+    <!-- Progress & Logout -->
+    <div class="p-5 border-t border-blue-900/60">
+        <div class="text-xs text-blue-400 mb-2 flex justify-between">
+            <span>Progres</span>
+            <span id="progress-label">0 / 5</span>
+        </div>
+        <div class="h-1.5 bg-blue-900 rounded-full overflow-hidden">
+            <div id="progress-fill" class="h-1.5 bg-blue-400 rounded-full" style="width:0%"></div>
+        </div>
+        <button onclick="logout()" class="mt-5 text-xs text-blue-500 hover:text-blue-200 transition-colors w-full text-left">
+            Keluar dari kelas
+        </button>
+    </div>
+</aside>
+
+<!-- Main Content -->
+<div id="main-content" class="min-h-screen">
+
+    <!-- Mobile Topbar -->
+    <header class="lg:hidden sticky top-0 z-30 bg-white border-b border-slate-200 px-4 py-3.5 flex items-center gap-4 shadow-sm">
+        <button onclick="openSidebar()" class="flex flex-col gap-1.5 p-1">
+            <span class="block w-5 h-0.5 bg-slate-700"></span>
+            <span class="block w-5 h-0.5 bg-slate-700"></span>
+            <span class="block w-3.5 h-0.5 bg-slate-700"></span>
+        </button>
+        <div>
+            <span class="text-sm font-semibold text-slate-800">Kelas Digital</span>
+            <span class="text-xs text-slate-400 ml-2" id="mobile-panel-title">Beranda</span>
+        </div>
+    </header>
+
+    <!-- Content Area -->
+    <div class="p-5 md:p-8 max-w-4xl mx-auto pb-16">
+
+        <!-- ======================== PANEL: BERANDA ======================== -->
+        <div id="panel-beranda" class="panel active">
+            <div class="mb-8">
+                <p class="text-xs font-semibold tracking-widest uppercase text-slate-400 mb-1">Selamat Datang</p>
+                <h1 class="text-2xl md:text-3xl font-bold text-slate-900" id="welcome-name">Halo, Siswa</h1>
+                <p class="text-slate-500 text-sm mt-1">Lanjutkan perjalanan belajar Anda hari ini.</p>
+            </div>
+
+            <!-- Course overview card -->
+            <div class="card mb-6 bg-[#0f2744] text-white">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <p class="text-xs tracking-widest uppercase text-blue-300 mb-1">Mata Kuliah</p>
+                        <h2 class="text-xl font-bold leading-snug">Mendesain Kelas Digital<br>Berbasis LMS</h2>
+                        <p class="text-blue-200 text-sm mt-2">01 — Orientasi</p>
+                    </div>
+                    <div class="flex gap-4 md:gap-6 flex-shrink-0">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold">5</div>
+                            <div class="text-xs text-blue-300 mt-1">Modul</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold" id="stat-done">0</div>
+                            <div class="text-xs text-blue-300 mt-1">Selesai</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Module grid -->
+            <p class="text-xs font-semibold tracking-widest uppercase text-slate-400 mb-4">Modul Pembelajaran</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="card-sm module-card" onclick="showPanel('pendahuluan')">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-xs font-semibold text-slate-400">01</span>
+                        <span id="badge-pendahuluan" class="badge-open">Buka</span>
+                    </div>
+                    <h3 class="font-bold text-slate-800 text-sm mb-1">Pendahuluan</h3>
+                    <p class="text-xs text-slate-500">Orientasi dan dasar konsep kelas digital</p>
+                </div>
+                <div class="card-sm module-card" onclick="showPanel('materi')">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-xs font-semibold text-slate-400">02</span>
+                        <span id="badge-materi" class="badge-open">Buka</span>
+                    </div>
+                    <h3 class="font-bold text-slate-800 text-sm mb-1">Materi</h3>
+                    <p class="text-xs text-slate-500">Mengenal LMS, fungsi, dan model aktivitas</p>
+                </div>
+                <div class="card-sm module-card" onclick="showPanel('aktivitas')">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-xs font-semibold text-slate-400">03</span>
+                        <span id="badge-aktivitas" class="badge-open">Buka</span>
+                    </div>
+                    <h3 class="font-bold text-slate-800 text-sm mb-1">Aktivitas</h3>
+                    <p class="text-xs text-slate-500">Tugas refleksi berbasis model Horton</p>
+                </div>
+                <div class="card-sm module-card" onclick="showPanel('project')">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-xs font-semibold text-slate-400">04</span>
+                        <span id="badge-project" class="badge-open">Buka</span>
+                    </div>
+                    <h3 class="font-bold text-slate-800 text-sm mb-1">Project</h3>
+                    <p class="text-xs text-slate-500">Rancang kelas digital berbasis LMS</p>
+                </div>
+                <div class="card-sm module-card" onclick="showPanel('evaluasi')">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-xs font-semibold text-slate-400">05</span>
+                        <span id="badge-evaluasi" class="badge-open">Buka</span>
+                    </div>
+                    <h3 class="font-bold text-slate-800 text-sm mb-1">Evaluasi</h3>
+                    <p class="text-xs text-slate-500">Kuis akhir untuk mengukur pemahaman</p>
+                </div>
+            </div>
+
+            <!-- Teacher only: link to spreadsheet -->
+            <div id="guru-panel" class="hidden mt-8">
+                <div class="card border border-amber-200 bg-amber-50">
+                    <p class="text-xs font-bold tracking-widest uppercase text-amber-700 mb-2">Panel Guru</p>
+                    <p class="text-sm text-amber-800 mb-4">Lihat hasil aktivitas, project, dan evaluasi seluruh peserta didik melalui Google Spreadsheet.</p>
+                    <a href="https://docs.google.com/spreadsheets" target="_blank"
+                       class="inline-flex items-center gap-2 text-sm font-semibold text-amber-700 border border-amber-300 px-4 py-2 rounded-lg hover:bg-amber-100 transition-colors">
+                        Buka Google Spreadsheet
+                        <span>→</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================== PANEL: PENDAHULUAN ======================== -->
+        <div id="panel-pendahuluan" class="panel">
+            <div class="mb-8">
+                <p class="text-xs font-semibold tracking-widest uppercase text-blue-500 mb-1">01 — Pendahuluan</p>
+                <h1 class="text-2xl md:text-3xl font-bold text-slate-900">Orientasi Kelas Digital</h1>
+                <p class="text-slate-500 text-sm mt-1">Memahami mengapa kelas digital perlu dirancang dengan baik.</p>
+            </div>
+
+            <!-- Tujuan Pembelajaran -->
+            <div class="card mb-6">
+                <h2 class="text-base font-bold text-slate-800 mb-4 pb-3 border-b border-slate-100">Tujuan Pembelajaran</h2>
+                <div class="space-y-3">
+                    <div class="flex gap-3 text-sm text-slate-700">
+                        <span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center mt-0.5">1</span>
+                        <span>Menjelaskan konsep dan urgensi kelas digital dalam pendidikan modern.</span>
+                    </div>
+                    <div class="flex gap-3 text-sm text-slate-700">
+                        <span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center mt-0.5">2</span>
+                        <span>Mengidentifikasi karakteristik kelas digital yang efektif dan terstruktur.</span>
+                    </div>
+                    <div class="flex gap-3 text-sm text-slate-700">
+                        <span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center mt-0.5">3</span>
+                        <span>Memahami peran LMS sebagai ruang implementasi desain pembelajaran digital.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 1: Mengapa Kelas Digital -->
+            <div class="card mb-6">
+                <h2 class="text-base font-bold text-slate-800 mb-5">Mengapa Kelas Digital Perlu Didesain?</h2>
+                <div class="space-y-4">
+                    <div class="step-item">
+                        <div class="step-num">1</div>
+                        <div class="step-text">Peserta didik membutuhkan pengalaman belajar yang <span class="step-bold">Terstruktur</span> dan mudah diikuti.</div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">2</div>
+                        <div class="step-text"><span class="step-bold">Materi</span> perlu disajikan secara menarik, mudah diakses, dan sesuai kebutuhan.</div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">3</div>
+                        <div class="step-text"><span class="step-bold">Aktivitas</span> harus mendorong keterlibatan aktif, bukan hanya konsumsi informasi.</div>
+                    </div>
+                    <div class="step-item" style="margin-bottom:0">
+                        <div class="step-num">4</div>
+                        <div class="step-text"><span class="step-bold">Asesmen</span> dan umpan balik perlu mengarahkan peserta didik menuju capaian pembelajaran.</div>
+                    </div>
+                </div>
+                <div class="callout mt-6">
+                    <span class="callout-label">Inti Pembelajaran</span>
+                    <span class="callout-text">LMS menyediakan ruang; desain pembelajaran menentukan kualitas pengalaman belajar.</span>
+                </div>
+            </div>
+
+            <!-- Slide 2: Konsep Kelas Digital -->
+            <div class="card mb-6">
+                <h2 class="text-base font-bold text-slate-800 mb-5">Konsep Kelas Digital</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <div class="concept-card" style="border-color:#2563eb">
+                        <h3 class="font-bold text-slate-800 text-sm mb-2">Fleksibel</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">Belajar dapat berlangsung lintas waktu dan tempat.</p>
+                    </div>
+                    <div class="concept-card" style="border-color:#0891b2">
+                        <h3 class="font-bold text-slate-800 text-sm mb-2">Terhubung</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">Pendidik, peserta didik, konten, dan sumber belajar saling terhubung.</p>
+                    </div>
+                    <div class="concept-card" style="border-color:#d97706">
+                        <h3 class="font-bold text-slate-800 text-sm mb-2">Terstruktur</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">Materi, aktivitas, dan asesmen disusun dalam alur yang jelas.</p>
+                    </div>
+                    <div class="concept-card" style="border-color:#16a34a">
+                        <h3 class="font-bold text-slate-800 text-sm mb-2">Terpantau</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">Kemajuan dan hasil belajar dapat dimonitor melalui data LMS.</p>
+                    </div>
+                </div>
+                <div class="callout">
+                    <span class="callout-label">Inti Pembelajaran</span>
+                    <span class="callout-text">Kelas digital adalah lingkungan belajar, bukan sekadar kumpulan file daring.</span>
+                </div>
+            </div>
+
+            <button onclick="markDone('pendahuluan'); showPanel('materi')"
+                class="w-full md:w-auto bg-[#1e3a8a] hover:bg-[#1e40af] text-white px-8 py-3 rounded-lg font-semibold text-sm transition-colors">
+                Lanjut ke Materi
+            </button>
+        </div>
+
+        <!-- ======================== PANEL: MATERI ======================== -->
+        <div id="panel-materi" class="panel">
+            <div class="mb-8">
+                <p class="text-xs font-semibold tracking-widest uppercase text-blue-500 mb-1">02 — Materi</p>
+                <h1 class="text-2xl md:text-3xl font-bold text-slate-900">Learning Management System</h1>
+                <p class="text-slate-500 text-sm mt-1">Memahami LMS, fungsinya, dan model aktivitas belajar digital.</p>
+            </div>
+
+            <!-- Slide 3: Mengenal LMS -->
+            <div class="card mb-6">
+                <h2 class="text-base font-bold text-slate-800 mb-5">Mengenal Learning Management System (LMS)</h2>
+                <div class="space-y-4">
+                    <div class="step-item">
+                        <div class="step-num">1</div>
+                        <div class="step-text">LMS adalah sistem digital untuk <span class="step-bold">mengelola, menyampaikan, memantau, dan mengevaluasi</span> pembelajaran.</div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">2</div>
+                        <div class="step-text">LMS menyediakan ruang untuk mengorganisasi kelas, peserta, materi, aktivitas, dan penilaian.</div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">3</div>
+                        <div class="step-text">Contoh platform: <span class="step-bold">Moodle, Google Classroom, Canvas, Schoology,</span> dan Blackboard.</div>
+                    </div>
+                    <div class="step-item" style="margin-bottom:0">
+                        <div class="step-num">4</div>
+                        <div class="step-text">Pemilihan LMS perlu mempertimbangkan <span class="step-bold">tujuan, kemudahan penggunaan, aksesibilitas,</span> dan dukungan teknis.</div>
+                    </div>
+                </div>
+                <div class="callout mt-6">
+                    <span class="callout-label">Inti Pembelajaran</span>
+                    <span class="callout-text">Pilih LMS berdasarkan kebutuhan pembelajaran, bukan sekadar popularitas platform.</span>
+                </div>
+            </div>
+
+            <!-- Slide 4: Fungsi LMS -->
+            <div class="card mb-6">
+                <h2 class="text-base font-bold text-slate-800 mb-5">Fungsi LMS dalam Pembelajaran</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <div class="concept-card" style="border-color:#2563eb">
+                        <h3 class="font-bold text-slate-800 text-sm mb-2">Manajemen Materi</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">Mengelola modul, video, e-book, tautan, dan bahan ajar.</p>
+                    </div>
+                    <div class="concept-card" style="border-color:#0891b2">
+                        <h3 class="font-bold text-slate-800 text-sm mb-2">Interaksi</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">Memfasilitasi forum, pesan, diskusi, dan kolaborasi.</p>
+                    </div>
+                    <div class="concept-card" style="border-color:#d97706">
+                        <h3 class="font-bold text-slate-800 text-sm mb-2">Asesmen</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">Menyediakan kuis, tugas, ujian, rubrik, dan penilaian.</p>
+                    </div>
+                    <div class="concept-card" style="border-color:#16a34a">
+                        <h3 class="font-bold text-slate-800 text-sm mb-2">Monitoring</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">Memantau progres, partisipasi, dan capaian belajar.</p>
+                    </div>
+                </div>
+                <div class="callout">
+                    <span class="callout-label">Inti Pembelajaran</span>
+                    <span class="callout-text">Fungsi LMS saling melengkapi dalam mendukung keseluruhan siklus pembelajaran.</span>
+                </div>
+            </div>
+
+            <!-- Slide 5: Horton Model -->
+            <div class="card mb-6">
+                <h2 class="text-base font-bold text-slate-800 mb-6">Tiga Jenis Aktivitas Belajar Horton</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+                    <div class="card-sm text-center border border-slate-100">
+                        <div class="horton-num bg-[#1e40af]" style="margin-bottom:12px">01</div>
+                        <div class="font-bold text-[#1e40af] text-sm tracking-widest uppercase mb-2">Absorb</div>
+                        <div class="font-semibold text-slate-800 text-sm mb-2">Memperoleh Informasi</div>
+                        <div class="text-xs text-slate-500 leading-relaxed">Membaca, melihat, mendengarkan</div>
+                    </div>
+                    <div class="card-sm text-center border border-slate-100">
+                        <div class="horton-num bg-[#15803d]" style="margin-bottom:12px">02</div>
+                        <div class="font-bold text-[#15803d] text-sm tracking-widest uppercase mb-2">Do</div>
+                        <div class="font-semibold text-slate-800 text-sm mb-2">Mempraktikkan Pengetahuan</div>
+                        <div class="text-xs text-slate-500 leading-relaxed">Latihan, simulasi, eksplorasi</div>
+                    </div>
+                    <div class="card-sm text-center border border-slate-100">
+                        <div class="horton-num bg-[#d97706]" style="margin-bottom:12px">03</div>
+                        <div class="font-bold text-[#d97706] text-sm tracking-widest uppercase mb-2">Connect</div>
+                        <div class="font-semibold text-slate-800 text-sm mb-2">Menghubungkan Pengetahuan</div>
+                        <div class="text-xs text-slate-500 leading-relaxed">Diskusi, proyek, refleksi</div>
+                    </div>
+                </div>
+                <div class="callout">
+                    <span class="callout-label">Inti Pembelajaran</span>
+                    <span class="callout-text">Ketiganya dapat dipadukan dalam satu unit pembelajaran untuk membangun pengalaman belajar yang utuh.</span>
+                </div>
+            </div>
+
+            <button onclick="markDone('materi'); showPanel('aktivitas')"
+                class="w-full md:w-auto bg-[#1e3a8a] hover:bg-[#1e40af] text-white px-8 py-3 rounded-lg font-semibold text-sm transition-colors">
+                Lanjut ke Aktivitas
+            </button>
+        </div>
+
+        <!-- ======================== PANEL: AKTIVITAS ======================== -->
+        <div id="panel-aktivitas" class="panel">
+            <div class="mb-8">
+                <p class="text-xs font-semibold tracking-widest uppercase text-blue-500 mb-1">03 — Aktivitas</p>
+                <h1 class="text-2xl md:text-3xl font-bold text-slate-900">Tugas Refleksi Belajar</h1>
+                <p class="text-slate-500 text-sm mt-1">Jawab pertanyaan refleksi berdasarkan model aktivitas Horton.</p>
+            </div>
+
+            <!-- Sudah submit -->
+            <div id="aktivitas-done" class="hidden card border border-green-200 bg-green-50 mb-6 text-center py-10">
+                <div class="text-green-700 font-bold text-base mb-2">Aktivitas Berhasil Dikumpulkan</div>
+                <p class="text-sm text-green-600">Jawaban Anda telah disimpan. Lanjutkan ke Project berikutnya.</p>
+                <button onclick="showPanel('project')" class="mt-5 bg-green-700 hover:bg-green-800 text-white px-6 py-2.5 rounded-lg font-semibold text-sm transition-colors">
+                    Lanjut ke Project
+                </button>
+            </div>
+
+            <div id="aktivitas-form-wrapper">
+                <div class="card mb-4 border-l-4 border-[#1e40af]">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-xs font-bold bg-[#1e40af] text-white px-2 py-0.5 rounded">ABSORB</span>
+                        <span class="text-xs text-slate-400">Memperoleh informasi</span>
+                    </div>
+                    <p class="text-sm text-slate-600 mt-2">Setelah mempelajari materi LMS, tuliskan <strong>3 hal baru</strong> yang Anda pelajari dari sesi ini.</p>
+                </div>
+                <div class="card mb-4 border-l-4 border-[#15803d]">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-xs font-bold bg-[#15803d] text-white px-2 py-0.5 rounded">DO</span>
+                        <span class="text-xs text-slate-400">Mempraktikkan pengetahuan</span>
+                    </div>
+                    <p class="text-sm text-slate-600 mt-2">Rancang <strong>outline kelas digital sederhana</strong> (topik, materi, dan aktivitas) untuk mata pelajaran yang Anda ampu atau minati.</p>
+                </div>
+                <div class="card mb-6 border-l-4 border-[#d97706]">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-xs font-bold bg-[#d97706] text-white px-2 py-0.5 rounded">CONNECT</span>
+                        <span class="text-xs text-slate-400">Menghubungkan pengetahuan</span>
+                    </div>
+                    <p class="text-sm text-slate-600 mt-2">Bagaimana LMS dapat <strong>diterapkan secara nyata</strong> dalam pembelajaran di lingkungan Anda? Jelaskan secara singkat.</p>
+                </div>
+
+                <div class="card">
+                    <h3 class="font-bold text-slate-800 text-sm mb-5">Formulir Pengumpulan Aktivitas</h3>
+                    <form id="form-aktivitas" onsubmit="submitAktivitas(event)" class="space-y-5">
+                        <div>
+                            <label class="form-label">Nama Lengkap <span class="text-red-500">*</span></label>
+                            <input type="text" id="akt-nama" class="form-input" placeholder="Masukkan nama lengkap Anda" required>
+                        </div>
+                        <div>
+                            <label class="form-label">NIM / NIS <span class="text-red-500">*</span></label>
+                            <input type="text" id="akt-nim" class="form-input" placeholder="Nomor Induk Mahasiswa/Siswa" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Absorb — 3 Hal yang Dipelajari <span class="text-red-500">*</span></label>
+                            <textarea id="akt-absorb" class="form-input" placeholder="1. ...\n2. ...\n3. ..." required></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label">Do — Outline Kelas Digital <span class="text-red-500">*</span></label>
+                            <textarea id="akt-do" class="form-input" placeholder="Topik: ...\nMateri: ...\nAktivitas: ..." required></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label">Connect — Penerapan LMS <span class="text-red-500">*</span></label>
+                            <textarea id="akt-connect" class="form-input" placeholder="LMS dapat diterapkan dengan cara..." required></textarea>
+                        </div>
+                        <button type="submit"
+                            class="w-full bg-[#1e3a8a] hover:bg-[#1e40af] text-white py-3 rounded-lg font-semibold text-sm transition-colors">
+                            Kumpulkan Aktivitas
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================== PANEL: PROJECT ======================== -->
+        <div id="panel-project" class="panel">
+            <div class="mb-8">
+                <p class="text-xs font-semibold tracking-widest uppercase text-blue-500 mb-1">04 — Project</p>
+                <h1 class="text-2xl md:text-3xl font-bold text-slate-900">Rancang Kelas Digital</h1>
+                <p class="text-slate-500 text-sm mt-1">Implementasikan pemahaman Anda dengan merancang kelas digital berbasis LMS.</p>
+            </div>
+
+            <!-- Brief -->
+            <div class="card mb-6">
+                <h2 class="text-base font-bold text-slate-800 mb-4">Deskripsi Project</h2>
+                <p class="text-sm text-slate-600 leading-relaxed mb-4">
+                    Rancang sebuah <strong>kelas digital berbasis LMS</strong> untuk topik pembelajaran pilihan Anda.
+                    Gunakan salah satu platform LMS (Google Classroom, Moodle, Canvas, atau lainnya) atau gunakan
+                    alat desain seperti Figma atau Canva untuk membuat prototipe.
+                </p>
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                    <p class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-3">Ketentuan Project</p>
+                    <div class="space-y-2 text-sm text-slate-600">
+                        <div class="flex gap-2"><span class="text-slate-400">—</span><span>Tentukan topik dan capaian pembelajaran yang spesifik.</span></div>
+                        <div class="flex gap-2"><span class="text-slate-400">—</span><span>Susun minimal 3 elemen: materi, aktivitas, dan asesmen.</span></div>
+                        <div class="flex gap-2"><span class="text-slate-400">—</span><span>Terapkan minimal 2 dari 4 konsep kelas digital (Fleksibel, Terhubung, Terstruktur, Terpantau).</span></div>
+                        <div class="flex gap-2"><span class="text-slate-400">—</span><span>Presentasikan dalam bentuk slide, Figma, atau implementasi langsung di LMS.</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sudah submit -->
+            <div id="project-done" class="hidden card border border-green-200 bg-green-50 mb-6 text-center py-10">
+                <div class="text-green-700 font-bold text-base mb-2">Project Berhasil Dikumpulkan</div>
+                <p class="text-sm text-green-600">Project Anda telah disimpan. Lanjutkan ke Evaluasi.</p>
+                <button onclick="showPanel('evaluasi')" class="mt-5 bg-green-700 hover:bg-green-800 text-white px-6 py-2.5 rounded-lg font-semibold text-sm transition-colors">
+                    Lanjut ke Evaluasi
+                </button>
+            </div>
+
+            <div id="project-form-wrapper">
+                <div class="card">
+                    <h3 class="font-bold text-slate-800 text-sm mb-5">Formulir Pengumpulan Project</h3>
+                    <form id="form-project" onsubmit="submitProject(event)" class="space-y-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="form-label">Nama Lengkap <span class="text-red-500">*</span></label>
+                                <input type="text" id="pj-nama" class="form-input" placeholder="Nama lengkap" required>
+                            </div>
+                            <div>
+                                <label class="form-label">NIM / NIS <span class="text-red-500">*</span></label>
+                                <input type="text" id="pj-nim" class="form-input" placeholder="Nomor Induk" required>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label">Judul Project <span class="text-red-500">*</span></label>
+                            <input type="text" id="pj-judul" class="form-input" placeholder="Contoh: Kelas Digital Matematika Berbasis Moodle" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Deskripsi Project <span class="text-red-500">*</span></label>
+                            <textarea id="pj-deskripsi" class="form-input" placeholder="Jelaskan topik, platform LMS yang digunakan, dan elemen yang dirancang..." required></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label">Link Karya (Slide / Figma / LMS) <span class="text-red-500">*</span></label>
+                            <input type="url" id="pj-link" class="form-input" placeholder="https://..." required>
+                        </div>
+                        <div>
+                            <label class="form-label">Link Video Presentasi (opsional)</label>
+                            <input type="url" id="pj-video" class="form-input" placeholder="https://...">
+                        </div>
+                        <button type="submit"
+                            class="w-full bg-[#1e3a8a] hover:bg-[#1e40af] text-white py-3 rounded-lg font-semibold text-sm transition-colors">
+                            Kumpulkan Project
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================== PANEL: EVALUASI ======================== -->
+        <div id="panel-evaluasi" class="panel">
+            <div class="mb-8">
+                <p class="text-xs font-semibold tracking-widest uppercase text-blue-500 mb-1">05 — Evaluasi</p>
+                <h1 class="text-2xl md:text-3xl font-bold text-slate-900">Kuis Pemahaman</h1>
+                <p class="text-slate-500 text-sm mt-1">Jawab 7 pertanyaan untuk mengukur pemahaman Anda tentang LMS dan kelas digital.</p>
+            </div>
+
+            <!-- Result view -->
+            <div id="eval-result" class="hidden">
+                <div class="card mb-6 text-center py-10">
+                    <div class="text-xs font-bold tracking-widest uppercase text-slate-400 mb-3">Skor Akhir</div>
+                    <div id="eval-score-display" class="text-6xl font-bold text-[#1e3a8a] mb-2"></div>
+                    <div class="text-slate-500 text-sm mb-6">dari 100 poin</div>
+                    <div id="eval-verdict" class="text-base font-semibold mb-6"></div>
+                    <button onclick="resetEval()"
+                        class="border border-slate-300 hover:bg-slate-50 text-slate-700 px-6 py-2.5 rounded-lg font-medium text-sm transition-colors mr-3">
+                        Ulangi Kuis
+                    </button>
+                    <button onclick="showPanel('beranda')"
+                        class="bg-[#1e3a8a] hover:bg-[#1e40af] text-white px-6 py-2.5 rounded-lg font-semibold text-sm transition-colors">
+                        Kembali ke Beranda
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quiz form -->
+            <div id="eval-form-wrapper">
+                <form id="form-evaluasi" onsubmit="submitEvaluasi(event)">
+                    <div class="card mb-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label">Nama Lengkap <span class="text-red-500">*</span></label>
+                                <input type="text" id="ev-nama" class="form-input" placeholder="Nama Anda" required>
+                            </div>
+                            <div>
+                                <label class="form-label">NIM / NIS <span class="text-red-500">*</span></label>
+                                <input type="text" id="ev-nim" class="form-input" placeholder="Nomor Induk" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="quiz-container" class="space-y-4"></div>
+
+                    <div class="mt-6">
+                        <button type="submit"
+                            class="w-full md:w-auto bg-[#1e3a8a] hover:bg-[#1e40af] text-white px-10 py-3 rounded-lg font-semibold text-sm transition-colors">
+                            Selesaikan Evaluasi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div><!-- /content area -->
+</div><!-- /main content -->
+
+<!-- Toast notification -->
+<div id="toast"></div>
+
+<!-- ============================================================
+     GOOGLE APPS SCRIPT — Paste kode ini di script.google.com,
+     deploy sebagai Web App (Akses: Anyone), lalu ganti SCRIPT_URL.
+     
+     function doPost(e) {
+       var ss = SpreadsheetApp.openById('SPREADSHEET_ID_ANDA');
+       var data = JSON.parse(e.postData.contents);
+       var sheetName = data.type === 'aktivitas' ? 'Aktivitas'
+                     : data.type === 'project' ? 'Project' : 'Evaluasi';
+       var sheet = ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
+       if (sheet.getLastRow() === 0) {
+         if (data.type === 'aktivitas') sheet.appendRow(['Waktu','Nama','NIM','Absorb','Do','Connect']);
+         else if (data.type === 'project') sheet.appendRow(['Waktu','Nama','NIM','Judul','Deskripsi','Link Karya','Link Video']);
+         else sheet.appendRow(['Waktu','Nama','NIM','Skor','Jawaban']);
+       }
+       var row = [new Date()];
+       if (data.type === 'aktivitas') row.push(data.nama, data.nim, data.absorb, data.do_act, data.connect);
+       else if (data.type === 'project') row.push(data.nama, data.nim, data.judul, data.deskripsi, data.link, data.video);
+       else row.push(data.nama, data.nim, data.skor, JSON.stringify(data.jawaban));
+       sheet.appendRow(row);
+       return ContentService.createTextOutput(JSON.stringify({status:'ok'})).setMimeType(ContentService.MimeType.JSON);
+     }
+============================================================ -->
+
+<script>
+// ============================================================
+// CONFIG — Ganti dengan URL Google Apps Script Anda setelah deploy
+// ============================================================
+const SCRIPT_URL = 'https://script.google.com/macros/s/GANTI_DENGAN_URL_ANDA/exec';
+
+// ============================================================
+// AUTH
+// ============================================================
+let currentUser = null;
+
+function initAuth() {
+    const stored = sessionStorage.getItem('kd_user');
+    if (!stored) { window.location.href = './index.html'; return; }
+    currentUser = JSON.parse(stored);
+    document.getElementById('user-name').textContent   = currentUser.name;
+    document.getElementById('user-role').textContent   = currentUser.role === 'guru' ? 'Pengajar' : 'Peserta Didik';
+    document.getElementById('user-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
+    document.getElementById('welcome-name').textContent = 'Halo, ' + currentUser.name;
+    if (currentUser.role === 'guru') {
+        document.getElementById('guru-panel').classList.remove('hidden');
+    }
+}
+
+function logout() {
+    sessionStorage.removeItem('kd_user');
+    window.location.href = './index.html';
+}
+
+// ============================================================
+// PROGRESS
+// ============================================================
+function getProgress() {
+    return JSON.parse(localStorage.getItem('kd_progress') || '{}');
+}
+function markDone(panel) {
+    const p = getProgress();
+    p[panel] = true;
+    localStorage.setItem('kd_progress', JSON.stringify(p));
+    updateProgressUI();
+}
+function updateProgressUI() {
+    const p = getProgress();
+    const panels = ['pendahuluan','materi','aktivitas','project','evaluasi'];
+    let done = 0;
+    panels.forEach(name => {
+        if (p[name]) {
+            done++;
+            const badge = document.getElementById('badge-' + name);
+            if (badge) { badge.className = 'badge-done'; badge.textContent = 'Selesai'; }
+        }
+    });
+    document.getElementById('stat-done').textContent  = done;
+    document.getElementById('progress-label').textContent = done + ' / 5';
+    document.getElementById('progress-fill').style.width  = (done / 5 * 100) + '%';
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showPanel(name) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    const btn = document.querySelector('[data-panel="' + name + '"]');
+    if (btn) btn.classList.add('active');
+
+    const titles = { beranda:'Beranda', pendahuluan:'Pendahuluan', materi:'Materi', aktivitas:'Aktivitas', project:'Project', evaluasi:'Evaluasi' };
+    document.getElementById('mobile-panel-title').textContent = titles[name] || '';
+
+    // Mark visited
+    if (name !== 'beranda') markDone(name);
+
+    closeSidebar();
+    window.scrollTo({ top: 0 });
+}
+
+// ============================================================
+// SIDEBAR MOBILE
+// ============================================================
+function openSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('show');
+}
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('show');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ============================================================
+// SUBMIT TO GOOGLE SHEETS (fetch no-cors)
+// ============================================================
+function sendToSheets(data) {
+    if (!SCRIPT_URL.includes('GANTI')) {
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        }).catch(() => {});
+    }
+}
+
+// ============================================================
+// AKTIVITAS FORM
+// ============================================================
+function submitAktivitas(e) {
+    e.preventDefault();
+    const data = {
+        type:    'aktivitas',
+        nama:    document.getElementById('akt-nama').value,
+        nim:     document.getElementById('akt-nim').value,
+        absorb:  document.getElementById('akt-absorb').value,
+        do_act:  document.getElementById('akt-do').value,
+        connect: document.getElementById('akt-connect').value,
+    };
+    // Save locally
+    localStorage.setItem('kd_aktivitas', JSON.stringify({ ...data, timestamp: new Date().toISOString() }));
+    // Send to Sheets
+    sendToSheets(data);
+    // Mark done
+    markDone('aktivitas');
+    // Show done state
+    document.getElementById('aktivitas-form-wrapper').classList.add('hidden');
+    document.getElementById('aktivitas-done').classList.remove('hidden');
+    showToast('Aktivitas berhasil dikumpulkan.');
+}
+
+// ============================================================
+// PROJECT FORM
+// ============================================================
+function submitProject(e) {
+    e.preventDefault();
+    const data = {
+        type:      'project',
+        nama:      document.getElementById('pj-nama').value,
+        nim:       document.getElementById('pj-nim').value,
+        judul:     document.getElementById('pj-judul').value,
+        deskripsi: document.getElementById('pj-deskripsi').value,
+        link:      document.getElementById('pj-link').value,
+        video:     document.getElementById('pj-video').value,
+    };
+    localStorage.setItem('kd_project', JSON.stringify({ ...data, timestamp: new Date().toISOString() }));
+    sendToSheets(data);
+    markDone('project');
+    document.getElementById('project-form-wrapper').classList.add('hidden');
+    document.getElementById('project-done').classList.remove('hidden');
+    showToast('Project berhasil dikumpulkan.');
+}
+
+// ============================================================
+// EVALUASI / QUIZ
+// ============================================================
+const QUIZ = [
+    {
+        q: 'LMS adalah singkatan dari...',
+        opts: ['Learning Media System', 'Learning Management System', 'Learning Module Software', 'Learning Multimedia Solution'],
+        ans: 1
+    },
+    {
+        q: 'Fungsi utama LMS dalam pembelajaran mencakup...',
+        opts: ['Hanya menyimpan file dan dokumen', 'Manajemen materi, interaksi, asesmen, dan monitoring', 'Menggantikan peran guru secara penuh', 'Membuat konten media sosial'],
+        ans: 1
+    },
+    {
+        q: 'Konsep kelas digital yang "Terpantau" berarti...',
+        opts: ['Semua percakapan siswa direkam secara diam-diam', 'Guru hadir setiap saat di kelas', 'Kemajuan dan hasil belajar dapat dimonitor melalui data LMS', 'Siswa harus selalu online'],
+        ans: 2
+    },
+    {
+        q: 'Menurut model Horton, aktivitas "DO" mencakup...',
+        opts: ['Membaca, melihat, mendengarkan', 'Diskusi, proyek, refleksi', 'Latihan, simulasi, eksplorasi', 'Menulis, menggambar, membuat video'],
+        ans: 2
+    },
+    {
+        q: 'Contoh platform LMS yang disebutkan dalam materi adalah...',
+        opts: ['Instagram, YouTube, TikTok', 'Moodle, Google Classroom, Canvas, Schoology', 'WordPress, Blogger, Medium', 'Figma, Canva, Adobe XD'],
+        ans: 1
+    },
+    {
+        q: 'Pemilihan LMS sebaiknya dipertimbangkan berdasarkan...',
+        opts: ['Popularitas platform di media sosial', 'Harga paling murah', 'Tujuan pembelajaran, kemudahan penggunaan, aksesibilitas, dan dukungan teknis', 'Jumlah pengguna terbanyak'],
+        ans: 2
+    },
+    {
+        q: 'Inti dari konsep kelas digital adalah...',
+        opts: ['Kelas digital adalah kumpulan file daring', 'Teknologi otomatis membuat pembelajaran berkualitas', 'Kelas digital adalah lingkungan belajar, bukan sekadar kumpulan file daring', 'Semua materi harus berupa video'],
+        ans: 2
+    }
+];
+
+let userAnswers = new Array(QUIZ.length).fill(null);
+
+function buildQuiz() {
+    const container = document.getElementById('quiz-container');
+    container.innerHTML = '';
+    QUIZ.forEach((q, qi) => {
+        const letters = ['A','B','C','D'];
+        const html = `
+            <div class="card">
+                <div class="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">Soal ${qi+1} dari ${QUIZ.length}</div>
+                <p class="text-sm font-semibold text-slate-800 mb-4 leading-relaxed">${q.q}</p>
+                <div>
+                    ${q.opts.map((opt, oi) => `
+                        <label class="quiz-option" id="opt-${qi}-${oi}" onclick="selectOpt(${qi},${oi})">
+                            <input type="radio" name="q${qi}" value="${oi}" style="display:none">
+                            <span class="flex-shrink-0 w-6 h-6 rounded-full border-2 border-current flex items-center justify-center text-xs font-bold">${letters[oi]}</span>
+                            <span>${opt}</span>
+                        </label>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+    });
+}
+
+function selectOpt(qi, oi) {
+    userAnswers[qi] = oi;
+    // Clear siblings, mark selected
+    QUIZ[qi].opts.forEach((_, i) => {
+        const el = document.getElementById(`opt-${qi}-${i}`);
+        el.classList.remove('selected');
+    });
+    document.getElementById(`opt-${qi}-${oi}`).classList.add('selected');
+}
+
+function submitEvaluasi(e) {
+    e.preventDefault();
+    // Check all answered
+    const unanswered = userAnswers.indexOf(null);
+    if (unanswered !== -1) {
+        showToast(`Jawab soal ${unanswered+1} terlebih dahulu.`);
+        const container = document.getElementById('quiz-container');
+        const cards = container.querySelectorAll('.card');
+        cards[unanswered].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
+    // Calculate score
+    let correct = 0;
+    QUIZ.forEach((q, qi) => { if (userAnswers[qi] === q.ans) correct++; });
+    const score = Math.round((correct / QUIZ.length) * 100);
+
+    // Send to Sheets
+    const data = {
+        type:    'evaluasi',
+        nama:    document.getElementById('ev-nama').value,
+        nim:     document.getElementById('ev-nim').value,
+        skor:    score,
+        jawaban: userAnswers
+    };
+    localStorage.setItem('kd_evaluasi', JSON.stringify({ ...data, timestamp: new Date().toISOString() }));
+    sendToSheets(data);
+    markDone('evaluasi');
+
+    // Show result
+    document.getElementById('eval-form-wrapper').classList.add('hidden');
+    document.getElementById('eval-result').classList.remove('hidden');
+    document.getElementById('eval-score-display').textContent = score;
+
+    let verdict = '';
+    if (score >= 86) verdict = 'Sangat Baik — Pemahaman Anda sangat kuat.';
+    else if (score >= 71) verdict = 'Baik — Pemahaman Anda sudah baik.';
+    else if (score >= 56) verdict = 'Cukup — Tinjau kembali beberapa materi.';
+    else verdict = 'Perlu Ditingkatkan — Pelajari ulang seluruh materi.';
+
+    document.getElementById('eval-verdict').textContent = verdict;
+    document.getElementById('eval-verdict').style.color = score >= 71 ? '#16a34a' : score >= 56 ? '#d97706' : '#dc2626';
+
+    showToast('Evaluasi selesai. Skor: ' + score);
+}
+
+function resetEval() {
+    userAnswers = new Array(QUIZ.length).fill(null);
+    document.getElementById('eval-result').classList.add('hidden');
+    document.getElementById('eval-form-wrapper').classList.remove('hidden');
+    buildQuiz();
+    document.getElementById('ev-nama').value = '';
+    document.getElementById('ev-nim').value  = '';
+}
+
+// ============================================================
+// RESTORE SUBMITTED STATES
+// ============================================================
+function restoreStates() {
+    if (localStorage.getItem('kd_aktivitas')) {
+        document.getElementById('aktivitas-form-wrapper').classList.add('hidden');
+        document.getElementById('aktivitas-done').classList.remove('hidden');
+    }
+    if (localStorage.getItem('kd_project')) {
+        document.getElementById('project-form-wrapper').classList.add('hidden');
+        document.getElementById('project-done').classList.remove('hidden');
+    }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    initAuth();
+    updateProgressUI();
+    buildQuiz();
+    restoreStates();
+});
+</script>
+</body>
+</html>
