@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Interaktif — Wahyu Nugraha</title>
+    <link rel="icon" type="image/svg+xml" href="./assets/images/favicon.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.cdnfonts.com/css/sf-pro-display" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"SF Pro Display"', '-apple-system', 'BlinkMacSystemFont', 'Inter', 'sans-serif'],
+                        sf: ['"SF Pro Display"', '-apple-system', 'BlinkMacSystemFont', 'Inter', 'sans-serif'],
+                        display: ['"Archivo Black"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: { dark: '#050505', light: '#f4f4f5', gray: '#71717a' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #050505;
+            color: #f4f4f5;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        .bw-filter { filter: grayscale(100%) contrast(1.1); }
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        .reveal-delay-1 { transition-delay: 0.1s; }
+        .reveal-delay-2 { transition-delay: 0.2s; }
+        ::selection { background-color: #f4f4f5; color: #050505; }
+
+        /* Game frame */
+        .game-wrapper {
+            position: relative;
+            width: 100%;
+            /* Tinggi dinamis — cukup tinggi untuk Google Sites */
+            height: 80vh;
+            min-height: 500px;
+            max-height: 900px;
+            overflow: hidden;
+            background: #0a0a0a;
+        }
+        .game-wrapper iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Navbar */
+        body.menu-open { overflow: hidden; }
+        #mobile-menu {
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+        }
+        #mobile-menu.hidden { transform: translateY(-10px); opacity: 0; pointer-events: none; }
+        #mobile-menu.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Navbar -->
+    <nav id="navbar" class="fixed w-full top-0 z-50 px-5 md:px-12 py-5 bg-brand-dark border-b border-zinc-900 flex justify-between items-center text-brand-light transition-all duration-300">
+        <a href="./index.html" class="font-display text-lg tracking-tighter uppercase">WN</a>
+        <div class="hidden md:flex space-x-8 font-sf font-medium text-xs tracking-widest uppercase">
+            <a href="./index.html#about" class="hover:opacity-60 transition-opacity">Tentang</a>
+            <a href="./index.html#works" class="hover:opacity-60 transition-opacity">Karya</a>
+            <a href="./index.html#contact" class="hover:opacity-60 transition-opacity">Kontak</a>
+        </div>
+        <button id="menu-btn" class="md:hidden flex flex-col justify-center items-center gap-[5px] w-8 h-8 z-50 relative" aria-label="Menu">
+            <span id="bar1" class="block w-6 h-px bg-brand-light transition-all duration-300"></span>
+            <span id="bar2" class="block w-6 h-px bg-brand-light transition-all duration-300"></span>
+            <span id="bar3" class="block w-4 h-px bg-brand-light transition-all duration-300 self-end"></span>
+        </button>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden fixed inset-0 z-40 bg-brand-dark flex flex-col justify-center items-center">
+        <div class="flex flex-col items-center gap-10">
+            <a href="./index.html" class="mobile-link font-display text-5xl uppercase tracking-tight hover:text-brand-gray transition-colors">Beranda</a>
+            <a href="./index.html#about" class="mobile-link font-display text-5xl uppercase tracking-tight hover:text-brand-gray transition-colors">Tentang</a>
+            <a href="./index.html#works" class="mobile-link font-display text-5xl uppercase tracking-tight hover:text-brand-gray transition-colors">Karya</a>
+            <a href="./index.html#contact" class="mobile-link font-display text-5xl uppercase tracking-tight hover:text-brand-gray transition-colors">Kontak</a>
+        </div>
+    </div>
+
+    <!-- Hero -->
+    <section class="relative pt-32 pb-16 px-5 md:px-12 bg-brand-dark border-b border-zinc-900 overflow-hidden">
+        <img src="./assets/images/bghitam.jpg" alt="Background"
+            class="absolute inset-0 w-full h-full object-cover bw-filter opacity-20 pointer-events-none">
+        <div class="absolute inset-0 bg-[#050505]/60 pointer-events-none"></div>
+
+        <div class="max-w-[1400px] mx-auto relative z-10">
+            <!-- Breadcrumb -->
+            <div class="reveal mb-8">
+                <a href="./index.html" class="inline-flex items-center gap-3 font-sf font-medium text-xs tracking-widest uppercase text-brand-gray hover:text-brand-light transition-colors">
+                    <span>←</span>
+                    <span>Kembali ke Beranda</span>
+                </a>
+            </div>
+
+            <div class="reveal reveal-delay-1">
+                <p class="font-sf font-medium text-xs tracking-[0.25em] uppercase mb-4 text-brand-gray">Media Pembelajaran</p>
+                <h1 class="font-display text-[13vw] sm:text-[10vw] md:text-[8vw] lg:text-[6vw] leading-[0.88] uppercase tracking-tighter text-brand-light mb-6">
+                    Game<br><span style="color:transparent; -webkit-text-stroke: 1px #f4f4f5;">Interaktif</span>
+                </h1>
+                <p class="font-sf text-base md:text-lg text-brand-gray max-w-2xl leading-relaxed mt-6">
+                    Game pembelajaran interaktif berbasis Glassmorphism yang dirancang untuk membuat
+                    proses belajar lebih menarik dan menyenangkan.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Game Section -->
+    <section class="py-12 md:py-16 px-5 md:px-12 bg-brand-dark">
+        <div class="max-w-[1400px] mx-auto">
+
+            <div class="reveal mb-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                    <p class="font-sf font-medium text-xs tracking-[0.25em] uppercase text-brand-gray">Game Pembelajaran</p>
+                    <a href="https://sites.google.com/view/glassmorphismtekbar"
+                       target="_blank" rel="noopener noreferrer"
+                       class="inline-flex items-center gap-3 font-sf font-medium text-xs tracking-widest uppercase text-brand-gray hover:text-brand-light transition-colors border-b border-zinc-800 pb-1 w-max">
+                        <span>Buka di Tab Baru</span>
+                        <span>→</span>
+                    </a>
+                </div>
+
+                <!-- Game Frame -->
+                <div class="game-wrapper border border-zinc-800">
+                    <iframe
+                        src="https://sites.google.com/view/glassmorphismtekbar"
+                        title="Game Interaktif Glassmorphism"
+                        allowfullscreen
+                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation">
+                    </iframe>
+                </div>
+
+                <!-- Fallback notice -->
+                <p class="font-sf text-xs text-brand-gray mt-4 tracking-wide">
+                    Jika konten tidak tampil, klik "Buka di Tab Baru" di atas untuk mengakses game secara langsung.
+                </p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Divider -->
+    <div class="border-t border-zinc-900 mx-5 md:mx-12"></div>
+
+    <!-- Navigasi ke halaman lain -->
+    <section class="py-16 md:py-24 px-5 md:px-12 bg-brand-dark">
+        <div class="max-w-[1400px] mx-auto">
+            <p class="font-sf font-medium text-xs tracking-[0.25em] uppercase text-brand-gray mb-10 reveal">Jelajahi Juga</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 reveal reveal-delay-1">
+                <a href="./sumberbelajar.html"
+                   class="group border border-zinc-800 hover:border-brand-light hover:bg-brand-light hover:text-brand-dark p-6 flex flex-col justify-between min-h-[140px] transition-all duration-500">
+                    <div class="flex items-center gap-2 text-brand-gray group-hover:text-brand-dark/70 transition-colors">
+                        <span class="block h-px bg-current transition-all duration-500 ease-out w-5 group-hover:w-12"></span>
+                        <span class="text-sm leading-none">→</span>
+                    </div>
+                    <h3 class="font-display text-lg md:text-xl uppercase tracking-tight leading-tight mt-8">Sumber<br>Belajar</h3>
+                </a>
+                <a href="./index.html#works"
+                   class="group border border-zinc-800 hover:border-brand-light hover:bg-brand-light hover:text-brand-dark p-6 flex flex-col justify-between min-h-[140px] transition-all duration-500">
+                    <div class="flex items-center gap-2 text-brand-gray group-hover:text-brand-dark/70 transition-colors">
+                        <span class="block h-px bg-current transition-all duration-500 ease-out w-5 group-hover:w-12"></span>
+                        <span class="text-sm leading-none">→</span>
+                    </div>
+                    <h3 class="font-display text-lg md:text-xl uppercase tracking-tight leading-tight mt-8">Lihat<br>Karya</h3>
+                </a>
+                <a href="./index.html#contact"
+                   class="group border border-zinc-800 hover:border-brand-light hover:bg-brand-light hover:text-brand-dark p-6 flex flex-col justify-between min-h-[140px] transition-all duration-500">
+                    <div class="flex items-center gap-2 text-brand-gray group-hover:text-brand-dark/70 transition-colors">
+                        <span class="block h-px bg-current transition-all duration-500 ease-out w-5 group-hover:w-12"></span>
+                        <span class="text-sm leading-none">→</span>
+                    </div>
+                    <h3 class="font-display text-lg md:text-xl uppercase tracking-tight leading-tight mt-8">Hubungi<br>Saya</h3>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-6 md:py-8 px-5 md:px-12 border-t border-zinc-900 bg-brand-dark flex flex-col md:flex-row justify-between items-center text-xs font-sf font-medium uppercase tracking-widest text-brand-gray gap-4 relative z-20">
+        <p>©2026 Wahyu Nugraha</p>
+        <div class="group relative flex items-center justify-center">
+            <img src="./assets/images/lv.png" alt="YNWA" class="w-10 h-10 object-contain transition-transform duration-500 group-hover:scale-110">
+            <span class="absolute -top-8 bg-brand-light text-brand-dark px-2 py-1 text-[10px] font-sf font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">YNWA</span>
+        </div>
+        <p>#SAYABERSAMAMUNIR</p>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Hamburger
+            const menuBtn = document.getElementById('menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const bar1 = document.getElementById('bar1');
+            const bar2 = document.getElementById('bar2');
+            const bar3 = document.getElementById('bar3');
+            const mobileLinks = document.querySelectorAll('.mobile-link');
+            let menuOpen = false;
+
+            function openMenu() {
+                menuOpen = true;
+                mobileMenu.classList.remove('hidden');
+                setTimeout(() => mobileMenu.classList.add('open'), 10);
+                document.body.classList.add('menu-open');
+                bar1.style.transform = 'translateY(6px) rotate(45deg)';
+                bar2.style.opacity = '0';
+                bar3.style.transform = 'translateY(-6px) rotate(-45deg)';
+                bar3.style.width = '24px';
+            }
+            function closeMenu() {
+                menuOpen = false;
+                mobileMenu.classList.remove('open');
+                setTimeout(() => mobileMenu.classList.add('hidden'), 400);
+                document.body.classList.remove('menu-open');
+                bar1.style.transform = '';
+                bar2.style.opacity = '';
+                bar3.style.transform = '';
+                bar3.style.width = '';
+            }
+            menuBtn.addEventListener('click', () => menuOpen ? closeMenu() : openMenu());
+            mobileLinks.forEach(l => l.addEventListener('click', closeMenu));
+
+            // Reveal
+            const reveals = document.querySelectorAll('.reveal');
+            const obs = new IntersectionObserver((entries, o) => {
+                entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('active'); o.unobserve(e.target); } });
+            }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+            reveals.forEach(el => obs.observe(el));
+        });
+    </script>
+</body>
+</html>
